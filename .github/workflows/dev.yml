@@ -1,0 +1,69 @@
+name: Dev CI
+
+on:
+  push:
+    branches: [ "dev", "develop", "feature/**" ]
+  pull_request:
+    branches: [ "dev", "develop", "feature/**" ]
+
+jobs:
+  build-and-test:
+    name: Build and Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions/setup-rust@v1
+        with:
+          rust-version: stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-git-
+
+      - name: Cache build
+        uses: actions/cache@v4
+        with:
+          path: |
+            target
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-
+
+      - name: Build
+        run: cargo build
+
+      - name: Run tests
+        run: cargo test
+
+      - name: Auto-versioning
+        id: version
+        run: |
+          VERSION=$(date +"%Y.%m.%d.%H%M%S")-dev-${{ github.run_number }}
+          echo "::set-output name=VERSION::$VERSION"
+          echo "Version: $VERSION"
+
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbmetaexporter-dev-${{ steps.version.outputs.VERSION }}-${{ matrix.os }}
+          path: target/debug/
+          if-no-files-found: error
