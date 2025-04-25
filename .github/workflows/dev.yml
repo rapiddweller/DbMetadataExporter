@@ -55,13 +55,13 @@ jobs:
       - name: Auto-versioning
         id: version
         run: |
-          VERSION=$(date +"%Y.%m.%d.%H%M%S")-dev-${{ github.run_number }}
+          VERSION=dev-${{ github.run_number }}
           echo "::set-output name=VERSION::$VERSION"
           echo "Version: $VERSION"
 
       - name: Archive build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dbmetaexporter-dev-${{ steps.version.outputs.VERSION }}-${{ matrix.os }}
+          name: dbmetaexporter-${{ steps.version.outputs.VERSION }}-${{ matrix.os }}
           path: target/debug/
           if-no-files-found: error
