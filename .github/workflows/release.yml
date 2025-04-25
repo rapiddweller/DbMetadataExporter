@@ -14,16 +14,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Rust
-        uses: actions/setup-rust@v1
-        with:
-          rust-version: stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Build (release)
         run: cargo build --release
 
       - name: Run tests (release)
         run: cargo test --release
-
-      # Example: Publish step (replace with real publish logic)
-      - name: Publish (example)
-        run: echo "This is where you would publish artifacts or crates."
